@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session 
-from app.schemas.user import UserCreate     # Class to store db data of user
+from app.schemas.schemas import UserCreate     # Class to store db data of user
+from app.schemas.schemas import UserLogin      # Class to store db data of login 
 from app.models.model import User        # DB Schema of table
 from app.services.database import get_db
 from app.services.hash import hash_password
 from app.services.hash import verify_password
 from app.services.otp import *
-from app.schemas.user import UserLogin      # Class to store db data of login 
 from app.services.email import send_email
 
 router = APIRouter()

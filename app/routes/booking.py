@@ -5,6 +5,6 @@ from app.services.database import get_db
 
 router = APIRouter()
 
-@router.post("/confrim-booking")
-def confirm_booking(booking):
+# @router.post("/confrim-booking")
+# def confirm_booking(booking):
     

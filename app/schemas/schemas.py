@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from datetime import time
 
 class UserCreate(BaseModel):
     name: str
@@ -10,3 +11,10 @@ class UserCreate(BaseModel):
 class UserLogin(BaseModel):
     email: str
     password: str
+
+
+class TimeSlotRequest(BaseModel):
+    opening_time : time
+    closing_time : time
+    lunch_time : time
+    

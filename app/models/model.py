@@ -16,7 +16,7 @@ class User(Base):
     role = Column(String, nullable=False)  # "customer" or "owner"
 
     # Relationship for customer bookings
-    bookings = relationship("Booking", back_populates="customer")
+    bookings = relationship("Booking", back_populates="users")
     
     
 ######################### TimeSlot Model #######################
@@ -53,6 +53,6 @@ class Booking(Base):
     cost = Column(Integer, nullable=False)
     created_at = Column(DateTime, server_default=func.now())
     
-    customers = relationship("User", back_populates="bookings")
+    users = relationship("User", back_populates="bookings")
     services = relationship("Service", back_populates="bookings")
-    time_slots = relationship("TimeSlot", back_populates="bookings")
+    timeslots = relationship("TimeSlot", back_populates="bookings")
