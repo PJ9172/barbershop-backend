@@ -18,3 +18,8 @@ class TimeSlotRequest(BaseModel):
     closing_time : time
     lunch_time : time
     
+class Services(BaseModel):
+    name : str
+    cost : int
+    class Config:
+        orm_mode = True
