@@ -18,8 +18,17 @@ class TimeSlotRequest(BaseModel):
     closing_time : time
     lunch_time : time
     
-class Services(BaseModel):
+class ServiceBase(BaseModel):
     name : str
     cost : int
+
+class ServiceCreate(ServiceBase):
+    pass
+
+class ServiceUpdate(ServiceBase):
+    pass
+
+class ServiceOut(ServiceBase):
+    id: int
     class Config:
         orm_mode = True

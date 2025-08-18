@@ -9,7 +9,7 @@ from app.services.database import get_db
 router = APIRouter()
 
 @router.post("/owner/set-timeslots")
-def setTimeslots(data:TimeSlotRequest, db: Session=Depends(get_db)):
+def set_timeslots(data:TimeSlotRequest, db: Session=Depends(get_db)):
     opening = data.opening_time
     closing = data.closing_time
     lunch = data.lunch_time
