@@ -6,9 +6,9 @@ from app.models.model import TimeSlot
 from app.schemas.schemas import TimeSlotRequest
 from app.services.database import get_db
 
-router = APIRouter()
+router = APIRouter(prefix="/owner", tags=["Owner"])
 
-@router.post("/owner/set-timeslots")
+@router.post("/set-timeslots")
 def set_timeslots(data:TimeSlotRequest, db: Session=Depends(get_db)):
     opening = data.opening_time
     closing = data.closing_time

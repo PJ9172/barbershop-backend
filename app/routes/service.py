@@ -23,7 +23,7 @@ def add_service(data : ServiceCreate, db : Session = Depends(get_db)):
     return new_service
 
 # Update existing Service....
-@router.put("/update{id}", response_model=ServiceOut)
+@router.put("/update/{id}", response_model=ServiceOut)
 def update_service(id : int, data : ServiceUpdate, db : Session = Depends(get_db)):
     service = db.query(Service).filter(Service.id == id).first()
     if not service:
@@ -37,7 +37,7 @@ def update_service(id : int, data : ServiceUpdate, db : Session = Depends(get_db
 
 
 # Delete existing Service...
-@router.delete("/delete{id}")
+@router.delete("/delete/{id}")
 def delete_service(id : int, db : Session = Depends(get_db)):
     service = db.query(Service).filter(Service.id == id).first()
     if not service:

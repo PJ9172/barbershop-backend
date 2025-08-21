@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from datetime import time
+from datetime import time, date
 
 
 # For auth.py
@@ -45,10 +45,10 @@ class SlotRequest(BaseModel):
     start_time : time
     end_time : time
     
-class BookingsResponse(BaseModel):
+class BookingsCreate(BaseModel):
     customer_id : int
     service_id : int
-    booking_date : str
+    booking_date : date
     time_slot_id : int
     cost : int
     
