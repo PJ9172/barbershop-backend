@@ -56,3 +56,17 @@ class Booking(Base):
     users = relationship("User", back_populates="bookings")
     services = relationship("Service", back_populates="bookings")
     timeslots = relationship("TimeSlot", back_populates="bookings")
+    
+    
+####################### WeekHoliday Model #######################################
+class WeekHoliday(Base):
+    __tablename__ = "weekholiday"
+    index = Column(Integer, primary_key=True, index=True)
+    
+####################### EmergencyHoliday Model ###################################
+class EmergencyHoliday(Base):
+    __tablename__ = "emergencyholiday"
+    id = Column(Integer, primary_key=True, index=True)
+    emergency_date = Column(Date, nullable=False)
+    details = Column(String(100), nullable=False)
+    

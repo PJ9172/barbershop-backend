@@ -15,12 +15,15 @@ class UserLogin(BaseModel):
     password: str
 
 
-# For time_slots.py
+# For owner.py
 class TimeSlotRequest(BaseModel):
     opening_time : time
     closing_time : time
     lunch_time : time
 
+class EmergencyHolidayRequest(BaseModel):
+    emergency_date : date
+    details : str
 
 # For service.py
 class ServiceBase(BaseModel):
@@ -51,4 +54,3 @@ class BookingsCreate(BaseModel):
     booking_date : date
     time_slot_id : int
     cost : int
-    
