@@ -23,8 +23,26 @@ def get_available_dates(db: Session = Depends(get_db)):
     today = datetime.now().date()
     dates = []
 
+    # fetch week_holiday if set
+    week_holiday = db.query(WeekHoliday).first()
+    week_holiday_index = week_holiday.index if week_holiday else None
+    
+    # fetch emergency down dates if exits
+    today = date.today()
+    emergency_holidays = db.query(EmergencyHoliday).filter(EmergencyHoliday.emergency_date > today)
+    emergency_dates = {eh.emergency_date for eh in emergency_holidays}
+    
     for i in range(0, 15): 
         next_date = today + timedelta(days=i)
+        
+        # skip weekly holiday
+        if week_holiday_index is not None and next_date.weekday() == week_holiday_index:
+            continue
+        
+        # skip emergency down dates
+        if next_date in emergency_dates:
+            continue
+        
         dates.append(next_date.isoformat())
 
     return {"available_dates": dates}

@@ -31,7 +31,7 @@ def set_timeslots(data:TimeSlotRequest, db: Session=Depends(get_db)):
         current_start = current_end
     
     db.commit()
-    return {"message" : "Time-Slots generated successfully"}
+    return {"success" : "True", "message" : "Time-Slots generated successfully"}
 
 
 @router.post("/set-week-holiday")
@@ -54,12 +54,17 @@ def set_week_holiday(day : str, db : Session = Depends(get_db)):
     db.add(new_holiday)
     db.commit()
     db.refresh(new_holiday)
-    return {"message" : "Week Holiday Set", "index_of_day" : new_holiday.index}
+    return {"success": True, "message": "Week Holiday Set", "holiday": new_holiday.index}
 
 
 @router.post("/set-emergency-holiday")
 def set_emergency_holiday(data : EmergencyHolidayRequest, db : Session = Depends(get_db)):
     if data.emergency_date > date.today():
+        # check already exists or not
+        exists = db.query(EmergencyHoliday).filter(EmergencyHoliday.emergency_date == data.emergency_date).first()
+        if exists:
+            raise HTTPException(status_code=400, detail="Holiday already exists for this date")
+
         new_data = EmergencyHoliday(
             emergency_date = data.emergency_date,
             details = data.details
@@ -67,6 +72,11 @@ def set_emergency_holiday(data : EmergencyHolidayRequest, db : Session = Depends
         db.add(new_data)
         db.commit()
         db.refresh(new_data)
-        return {"message" : "Emergency Holiday Date added..."}
+        return {"success" : "True", "message" : "Emergency Holiday Date added..."}
     else:
         raise HTTPException(status_code=404, detail="Past dates are not allowed...")
+    
+@router.get("/get-emergency-holidays")
+def get_emergency_holidays(db : Session = Depends(get_db)):
+    dates = db.query(EmergencyHoliday).all()
+    return dates
