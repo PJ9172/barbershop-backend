@@ -39,6 +39,7 @@ class Service(Base):
     cost = Column(Integer, nullable=False)
     
     bookings = relationship("Booking", back_populates="services")
+    manualbookings = relationship("ManualBooking", back_populates="services")
     
     
 ######################### Booking Model ##############################
@@ -70,3 +71,14 @@ class EmergencyHoliday(Base):
     emergency_date = Column(Date, nullable=False)
     details = Column(String(100), nullable=False)
     
+########################### ManualBooking Model ####################################
+class ManualBooking(Base):
+    __tablename__ = "manualbookings"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    phone = Column(String, nullable=False)
+    service_id = Column(Integer, ForeignKey("services.id"))
+    cost = Column(Integer, nullable=False)
+    created_at = Column(DateTime, server_default=func.now())
+    
+    services = relationship("Service", back_populates="manualbookings")

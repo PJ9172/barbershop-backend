@@ -1,9 +1,9 @@
-from fastapi import *
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from datetime import *
 
-from app.models.model import TimeSlot, WeekHoliday, EmergencyHoliday
-from app.schemas.schemas import TimeSlotRequest, EmergencyHolidayRequest
+from app.models.model import TimeSlot, WeekHoliday, EmergencyHoliday, ManualBooking
+from app.schemas.schemas import TimeSlotRequest, EmergencyHolidayRequest, ManualBookingRequest
 from app.services.database import get_db
 
 router = APIRouter(prefix="/owner", tags=["Owner"])
@@ -80,3 +80,16 @@ def set_emergency_holiday(data : EmergencyHolidayRequest, db : Session = Depends
 def get_emergency_holidays(db : Session = Depends(get_db)):
     dates = db.query(EmergencyHoliday).all()
     return dates
+
+@router.post("/manual-bookings")
+def manual_bookings(data : ManualBookingRequest, db : Session = Depends(get_db)):
+    new_data = ManualBooking(
+        name = data.name,
+        phone = data.phone,
+        service_id = data.service_id,
+        cost = data.cost
+    )
+    db.add(new_data)
+    db.commit()
+    db.refresh(new_data)
+    return {"success" : True, "message" : "Record added..", "customer" : new_data}

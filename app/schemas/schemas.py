@@ -25,6 +25,12 @@ class EmergencyHolidayRequest(BaseModel):
     emergency_date : date
     details : str
 
+class ManualBookingRequest(BaseModel):
+    name : str
+    phone : str
+    service_id : int
+    cost : int
+
 # For service.py
 class ServiceBase(BaseModel):
     name : str
@@ -54,3 +60,11 @@ class BookingsCreate(BaseModel):
     booking_date : date
     time_slot_id : int
     cost : int
+    
+# For customer.py
+class UpdateCustomerRequest(BaseModel):
+    id : int
+    name : str
+    email : str
+    phone : str
+    password : str
