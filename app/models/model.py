@@ -11,7 +11,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
-    phone = Column(String, nullable=False)
+    phone = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
     role = Column(String, nullable=False)  # "customer" or "owner"
 
@@ -76,7 +76,7 @@ class ManualBooking(Base):
     __tablename__ = "manualbookings"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
-    phone = Column(String, nullable=False)
+    phone = Column(String, nullable=False, unique=True)
     service_id = Column(Integer, ForeignKey("services.id"))
     cost = Column(Integer, nullable=False)
     created_at = Column(DateTime, server_default=func.now())

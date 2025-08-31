@@ -25,7 +25,7 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
     
-    send_email(user.email, user.name)
+    # send_email(user.email, user.name)
     return {"msg": "User created", "user_id":new_user.id}
 
 

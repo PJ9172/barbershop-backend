@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from datetime import date, datetime, timedelta
+import requests
 
 from app.models.model import *
 from app.services.database import get_db
@@ -20,7 +21,6 @@ def get_services(db: Session = Depends(get_db)):
 # 2. Get available dates (exclude past dates)
 @router.get("/available-dates")
 def get_available_dates(db: Session = Depends(get_db)):
-    today = datetime.now().date()
     dates = []
 
     # fetch week_holiday if set
@@ -57,6 +57,12 @@ def get_available_slots(booking_date: date, db: Session = Depends(get_db)):
     today = date.today()
     current_time = datetime.now().time()
 
+    res = requests.get("http://127.0.0.1:8000/bookings/available-dates")
+    available_dates = res.json().get("available_dates", [])
+
+    if booking_date.isoformat() not in available_dates:
+        raise HTTPException(status_code=400, detail="Date is not available for booking")
+
     for s in slots:
         # filter only future slots if the date is today
         if booking_date == today and s.start_time <= current_time:
@@ -77,7 +83,6 @@ def get_available_slots(booking_date: date, db: Session = Depends(get_db)):
             )
 
     return available
-
 
 @router.post("/confirm")
 def confirm_booking(data: BookingsCreate, db: Session = Depends(get_db)):
