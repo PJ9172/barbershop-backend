@@ -5,8 +5,9 @@ from datetime import *
 from app.models.model import TimeSlot, WeekHoliday, EmergencyHoliday, ManualBooking
 from app.schemas.schemas import TimeSlotRequest, EmergencyHolidayRequest, ManualBookingRequest
 from app.services.database import get_db
+from app.services.deps import require_roles
 
-router = APIRouter(prefix="/owner", tags=["Owner"])
+router = APIRouter(prefix="/owner", tags=["Owner"], dependencies=[Depends(require_roles("owner"))])
 
 @router.post("/set-timeslots")
 def set_timeslots(data:TimeSlotRequest, db: Session=Depends(get_db)):

@@ -22,7 +22,7 @@ def get_customer_info(id : int, db : Session = Depends(get_db)):
     customer = db.query(User).filter(User.id == id).first()
     return customer
 
-@router.post("/update-customer-profile")
+@router.put("/update-customer-profile")
 def update_customer_profile(data : UpdateCustomerRequest, db : Session = Depends(get_db)):
     customer = db.query(User).filter(User.id == data.id).first()
     
@@ -33,4 +33,4 @@ def update_customer_profile(data : UpdateCustomerRequest, db : Session = Depends
     
     db.commit()
     db.refresh(customer)
-    return {"success" : True      , "message" : "Profile Updated", "Info" : customer}
+    return {"success" : True, "message" : "Profile Updated", "Info" : customer}

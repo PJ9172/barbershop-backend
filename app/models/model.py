@@ -82,3 +82,22 @@ class ManualBooking(Base):
     created_at = Column(DateTime, server_default=func.now())
     
     services = relationship("Service", back_populates="manualbookings")
+
+
+######################## JWT Token Model ##############################
+class RefreshToken(Base):
+    __tablename__ = "refresh_tokens"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey(f"{User.__tablename__}.id", ondelete="CASCADE"), nullable=False)
+    token_hash = Column(String(128), nullable=False, unique=True)   # sha256 hex
+    device_id = Column(String(128), nullable=True)
+    user_agent = Column(String(256), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    last_used_at = Column(DateTime(timezone=True), nullable=True)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    revoked = Column(Boolean, default=False, nullable=False)
+    replaced_by_id = Column(Integer, ForeignKey("refresh_tokens.id"), nullable=True)
+
+    user = relationship("User", backref="refresh_tokens")
+    replaced_by = relationship("RefreshToken", remote_side=[id])

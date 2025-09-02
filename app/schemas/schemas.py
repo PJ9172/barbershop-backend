@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import time, date
+from typing import Optional
 
 
 # For auth.py
@@ -14,6 +15,17 @@ class UserLogin(BaseModel):
     email: str
     password: str
 
+class TokenPair(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+
+class RefreshIn(BaseModel):
+    refresh_token: str
+
+class DeviceInfo(BaseModel):
+    device_id: Optional[str] = None
+    user_agent: Optional[str] = None
 
 # For owner.py
 class TimeSlotRequest(BaseModel):
