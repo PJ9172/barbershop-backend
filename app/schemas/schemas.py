@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from datetime import time, date
+from datetime import time, date, datetime
 from typing import Optional
 
 
@@ -67,7 +67,6 @@ class SlotRequest(BaseModel):
     end_time : time
     
 class BookingsCreate(BaseModel):
-    customer_id : int
     service_id : int
     booking_date : date
     time_slot_id : int
@@ -80,3 +79,15 @@ class UpdateCustomerRequest(BaseModel):
     email : str
     phone : str
     password : str
+    
+class BookingHistoryResponse(BaseModel):
+    id: int
+    booking_date: date
+    created_at: datetime
+    service_name: str
+    service_cost: int
+    start_time: time
+    end_time: time
+
+    class Config:
+        orm_mode = True

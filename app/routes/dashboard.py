@@ -4,9 +4,10 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 
 from app.services.database import get_db
+from app.services.deps import require_roles
 from app.models.model import Booking, ManualBooking
 
-router = APIRouter(prefix="/owner", tags=["Owner Dashboard"])
+router = APIRouter(prefix="/owner", tags=["Owner Dashboard"], dependencies=[Depends(require_roles("Owner"))])
 
 @router.get("/get-total-income")
 def get_total_income(

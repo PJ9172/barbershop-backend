@@ -6,6 +6,7 @@ import requests
 
 from app.models.model import *
 from app.services.database import get_db
+from app.services.deps import get_current_user
 from app.schemas.schemas import *
 
 router = APIRouter(prefix="/bookings", tags=["Bookings"])
@@ -85,7 +86,7 @@ def get_available_slots(booking_date: date, db: Session = Depends(get_db)):
     return available
 
 @router.post("/confirm")
-def confirm_booking(data: BookingsCreate, db: Session = Depends(get_db)):
+def confirm_booking(data: BookingsCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     # extra validation: prevent booking past slots
     if data.booking_date < date.today():
         raise HTTPException(status_code=400, detail="Cannot book for past dates")
@@ -105,7 +106,7 @@ def confirm_booking(data: BookingsCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Slot already full!!!")
 
     new_booking = Booking(
-        customer_id=data.customer_id,
+        customer_id=current_user.id,
         service_id=data.service_id,
         booking_date=data.booking_date,
         time_slot_id=data.time_slot_id,

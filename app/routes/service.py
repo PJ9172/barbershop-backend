@@ -3,10 +3,11 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.services.database import get_db
+from app.services.deps import require_roles
 from app.schemas.schemas import *
 from app.models.model import Service
 
-router = APIRouter(prefix="/services", tags=["Services"])
+router = APIRouter(prefix="/services", tags=["Services"], dependencies=[Depends(require_roles("owner"))])
 
 # Get all services..
 @router.get("/", response_model=List[ServiceOut])
