@@ -74,7 +74,6 @@ class BookingsCreate(BaseModel):
     
 # For customer.py
 class UpdateCustomerRequest(BaseModel):
-    id : int
     name : str
     email : str
     phone : str

@@ -3,11 +3,11 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.services.database import get_db
-from app.services.deps import get_current_user
+from app.services.deps import get_current_user, require_roles
 from app.models.model import Booking, User, Service, TimeSlot
 from app.schemas.schemas import UpdateCustomerRequest, BookingHistoryResponse
 
-router = APIRouter(prefix="/customer", tags=["Customer"])
+router = APIRouter(prefix="/customer", tags=["Customer"], dependencies=[Depends(require_roles("owner"))])
 
 @router.get("/get-bookings-history", response_model=List[BookingHistoryResponse])
 def get_bookings_history(id: dict = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -36,14 +36,15 @@ def get_bookings_history(id: dict = Depends(get_current_user), db: Session = Dep
     return result
 
 @router.get("/get-customre-info")
-def get_customer_info(id : int, db : Session = Depends(get_db)):
+def get_customer_info(id : dict = Depends(get_current_user), db : Session = Depends(get_db)):
+    id = id["id"]
     customer = db.query(User).filter(User.id == id).first()
     return customer
 
 @router.put("/update-customer-profile")
-def update_customer_profile(data : UpdateCustomerRequest, db : Session = Depends(get_db)):
-    customer = db.query(User).filter(User.id == data.id).first()
-    
+def update_customer_profile(data : UpdateCustomerRequest, id : dict = Depends(get_current_user), db : Session = Depends(get_db)):
+    id = id["id"]
+    customer = db.query(User).filter(User.id == id).first()
     customer.name = data.name
     customer.email = data.email
     customer.phone = data.phone
