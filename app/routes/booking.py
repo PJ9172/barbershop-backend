@@ -97,7 +97,7 @@ def confirm_booking(data: BookingsCreate, db: Session = Depends(get_db), current
         if slot and slot.start_time <= current_time:
             raise HTTPException(status_code=400, detail="Cannot book past time slot")
 
-    count = db.query(Booking).filter(
+    count = db.query(Booking).with_for_update().filter(
         Booking.booking_date == data.booking_date,
         Booking.time_slot_id == data.time_slot_id
     ).count()
@@ -121,4 +121,4 @@ def confirm_booking(data: BookingsCreate, db: Session = Depends(get_db), current
         db.rollback()
         raise
 
-    return {"message": "Booking Confirmed", "booking_id": new_booking.id}
+    return {"success" : True, "message": "Booking Confirmed", "booking_id": new_booking.id}

@@ -52,6 +52,7 @@ class Booking(Base):
     booking_date = Column(Date, nullable=False)
     time_slot_id = Column(Integer, ForeignKey("timeslots.id"))
     cost = Column(Integer, nullable=False)
+    payment_status = Column(String, default="pending")  # "pending", "done", "cancel"
     created_at = Column(DateTime, server_default=func.now())
     
     users = relationship("User", back_populates="bookings")
@@ -63,6 +64,12 @@ class Booking(Base):
 class WeekHoliday(Base):
     __tablename__ = "weekholiday"
     index = Column(Integer, primary_key=True, index=True)
+
+######################## No. of customers per slot ##############################
+class SlotCapacity(Base):
+    __tablename__ = "slotcapacity"
+    id = Column(Integer, primary_key=True, index=True)
+    capacity = Column(Integer, nullable=False)
     
 ####################### EmergencyHoliday Model ###################################
 class EmergencyHoliday(Base):

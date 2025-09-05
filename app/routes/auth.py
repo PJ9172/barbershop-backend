@@ -7,6 +7,7 @@ from app.models.model import User        # DB Schema of table
 from app.services.database import get_db
 from app.services.hash import hash_password, verify_password
 from app.services.otp import *
+from app.services.email import send_email
 from app.schemas.schemas import UserLogin, TokenPair, RefreshIn, DeviceInfo
 from app.services.token_service import mint_token_pair, rotate_refresh, revoke_refresh
 from app.services.deps import get_current_user
@@ -27,8 +28,8 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_user)
     
-    # send_email(user.email, user.name)
-    return {"msg": "User created", "user_id":new_user.id}
+    send_email(user.email, user.name)
+    return {"success": True, "msg": "User created", "user_id":new_user.id}
 
 
 
@@ -54,7 +55,7 @@ def refresh_tokens(body: RefreshIn, request: Request, db: Session = Depends(get_
 @router.post("/logout")
 def logout(body: RefreshIn, db: Session = Depends(get_db)):
     revoke_refresh(db, body.refresh_token)
-    return {"ok": True}
+    return {"success": True}
 
 @router.get("/me")
 def read_me(current_user: User = Depends(get_current_user)):

@@ -79,14 +79,3 @@ class UpdateCustomerRequest(BaseModel):
     phone : str
     password : str
     
-class BookingHistoryResponse(BaseModel):
-    id: int
-    booking_date: date
-    created_at: datetime
-    service_name: str
-    service_cost: int
-    start_time: time
-    end_time: time
-
-    class Config:
-        orm_mode = True

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from datetime import *
 
-from app.models.model import TimeSlot, WeekHoliday, EmergencyHoliday, ManualBooking
+from app.models.model import TimeSlot, WeekHoliday, EmergencyHoliday, ManualBooking, Booking, SlotCapacity
 from app.schemas.schemas import TimeSlotRequest, EmergencyHolidayRequest, ManualBookingRequest
 from app.services.database import get_db
 from app.services.deps import require_roles
@@ -37,7 +37,8 @@ def set_timeslots(data:TimeSlotRequest, db: Session=Depends(get_db)):
 
 @router.post("/set-week-holiday")
 def set_week_holiday(day : str, db : Session = Depends(get_db)):
-    weekday_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    day = day.lower()
+    weekday_names = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
     if day in weekday_names:
         new_index = weekday_names.index(day)
     else:
@@ -57,6 +58,38 @@ def set_week_holiday(day : str, db : Session = Depends(get_db)):
     db.refresh(new_holiday)
     return {"success": True, "message": "Week Holiday Set", "holiday": new_holiday.index}
 
+@router.get("/get-week-holiday")
+def get_week_holiday(db : Session = Depends(get_db)):
+    holiday = db.query(WeekHoliday).first()
+    if not holiday:
+        return {"holiday" : None}
+    weekday_names = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+    return {"holiday" : weekday_names[holiday.index]}
+
+@router.post("/set-slot-capacity")
+def set_slot_capacity(capacity : int, db : Session = Depends(get_db)):
+    if capacity <= 0:
+        raise HTTPException(status_code=400, detail="Capacity must be greater than zero")
+    
+    # clear old slot capacity before setting new one
+    count = db.query(SlotCapacity).count()
+    if count > 0:
+        db.query(SlotCapacity).delete()
+        
+    new_capacity = SlotCapacity(
+        capacity = capacity
+    )
+    db.add(new_capacity)
+    db.commit()
+    db.refresh(new_capacity)
+    return {"success": True, "message": "Slot Capacity Set", "capacity": new_capacity.capacity}
+
+@router.get("/get-slot-capacity")
+def get_slot_capacity(db : Session = Depends(get_db)):
+    capacity = db.query(SlotCapacity).first()
+    if not capacity:
+        return {"capacity" : None}
+    return {"capacity" : capacity.capacity}
 
 @router.post("/set-emergency-holiday")
 def set_emergency_holiday(data : EmergencyHolidayRequest, db : Session = Depends(get_db)):
@@ -94,3 +127,62 @@ def manual_bookings(data : ManualBookingRequest, db : Session = Depends(get_db))
     db.commit()
     db.refresh(new_data)
     return {"success" : True, "message" : "Record added..", "customer" : new_data}
+
+@router.get("/get-manual-bookings")
+def get_manual_bookings(db : Session = Depends(get_db)):
+    bookings = db.query(ManualBooking).all()
+    response = []
+    for b in bookings:
+        response.append({
+            "id": b.id,
+            "name": b.name,
+            "phone": b.phone,
+            "service_name": b.services.name,
+            "cost": b.cost,
+            "created_at": b.created_at
+        })
+    return response
+
+@router.post("/confirm-payment/{booking_id}")
+def confirm_payment(booking_id : int, db : Session = Depends(get_db)):
+    booking = db.query(Booking).filter(Booking.id == booking_id).first()
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    if booking.payment_status == "done":
+        raise HTTPException(status_code=400, detail="Payment already confirmed")
+    
+    booking.payment_status = "done"
+    db.commit()
+    db.refresh(booking)
+    return {"success" : True, "message" : "Payment confirmed", "booking" : booking}
+
+@router.post("/cancel-booking/{booking_id}")
+def cancel_booking(booking_id : int, db : Session = Depends(get_db)):
+    booking = db.query(Booking).filter(Booking.id == booking_id).first()
+    if not booking:
+        raise HTTPException(status_code=404, detail="Booking not found")
+    
+    if booking.payment_status == "cancel":
+        raise HTTPException(status_code=400, detail="Booking already cancelled")
+    
+    booking.payment_status = "cancel"
+    db.commit()
+    db.refresh(booking)
+    return {"success" : True, "message" : "Booking cancelled", "booking" : booking}
+
+@router.get("/cancelled-bookings")
+def cancelled_bookings(db : Session = Depends(get_db)):
+    bookings = db.query(Booking).filter(Booking.payment_status == "cancel").all()
+    response = []
+    for b in bookings:
+        response.append({
+            "id": b.id,
+            "customer_name": b.users.name,
+            "service_name": b.services.name,
+            "booking_date": b.booking_date,
+            "time_slot": f"{b.timeslots.start_time} - {b.timeslots.end_time}",
+            "cost": b.cost,
+            "created_at": b.created_at
+        })
+    return response

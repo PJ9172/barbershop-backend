@@ -12,7 +12,7 @@ router = APIRouter(prefix="/owner", tags=["Owner Dashboard"], dependencies=[Depe
 @router.get("/summary")
 def get_summary(db: Session = Depends(get_db)):
     # Base queries
-    booking_query = db.query(Booking)
+    booking_query = db.query(Booking).filter(Booking.payment_status == "done")
     manual_booking_query = db.query(ManualBooking)
 
     total_income = sum(b.cost for b in booking_query.all()) + \
@@ -35,7 +35,7 @@ def get_total_income(
     today = date.today()
 
     # Base queries
-    booking_query = db.query(Booking)
+    booking_query = db.query(Booking).filter(Booking.payment_status == "done")
     manual_booking_query = db.query(ManualBooking)
 
     # Apply filter
@@ -78,7 +78,7 @@ def get_total_income(
     }
 
 
-@router.get("/gete-popular-services")
+@router.get("/get-popular-services")
 def popular_services(db: Session = Depends(get_db)):
     result = (
         db.query(
@@ -104,29 +104,45 @@ def popular_services(db: Session = Depends(get_db)):
 
     return response
 
-# @router.get("/get-active-customers")
-# def get_active_customers(db: Session = Depends(get_db)):
-#     results = (
-#         db.query(
-#             User.name,
-#             func.count(Booking.id).label("bookings"),
-#             func.sum(Service.cost).label("total_spent")
-#         )
-#         .join(Booking, User.id == Booking.customer_id)
-#         .join(Service, Booking.service_id == Service.id)
-#         .group_by(User.id)
-#         .order_by(func.count(Booking.id).desc())
-#         .limit(5)
-#         .all()
-#     )
+@router.get("/get-loyal-customers")
+def loyal_customers(db: Session = Depends(get_db)):
+    result = (
+        db.query(
+            User.name.label("customer_name"),
+            func.count(Booking.id).label("total_bookings"),
+            func.coalesce(func.sum(Booking.cost), 0).label("total_spent")
+        )
+        .join(Booking, Booking.customer_id == User.id)
+        .group_by(User.id)
+        .order_by(func.count(Booking.id).desc())
+        .all()
+    )
 
-#     return [
-#         {"customer_name": r[0], "bookings": r[1], "total_spent": r[2]}
-#         for r in results
-#     ]
+    # Convert SQLAlchemy Row objects into plain dicts
+    response = [
+        {
+            "customer_name": row.customer_name,
+            "total_bookings": row.total_bookings,
+            "total_spent": row.total_spent
+        }
+        for row in result
+    ]
 
-@router.get("/get-total-customers")
-def get_total_customers(db: Session = Depends(get_db)):
+    return response
+
+@router.get("/online-vs-offline-customers")
+def online_vs_offline_customers(db: Session = Depends(get_db)):
     online = db.query(User).filter(User.role == "customer").count()
     manual = db.query(ManualBooking).distinct(ManualBooking.phone).count()
     return {"total_customers": online+manual, "online_customers": online, "manual_customers": manual}
+
+@router.get("/done-vs-cancel-bookings")
+def done_vs_cancel_bookings(db: Session = Depends(get_db)):
+    online = db.query(Booking).filter(Booking.payment_status == "done").count()
+    offline = db.query(ManualBooking).count()
+    done_count = online + offline
+    cancel_count = db.query(Booking).filter(Booking.payment_status == "cancel").count()
+    return {
+        "done": done_count,
+        "cancel": cancel_count
+    }
