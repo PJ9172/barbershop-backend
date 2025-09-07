@@ -7,7 +7,7 @@ from app.services.database import get_db
 from app.services.deps import require_roles
 from app.models.model import Booking, ManualBooking, Service, User
 
-router = APIRouter(prefix="/owner", tags=["Owner Dashboard"], dependencies=[Depends(require_roles("Owner"))])
+router = APIRouter(prefix="/owner", tags=["Owner Dashboard"], dependencies=[Depends(require_roles("owner"))])
 
 @router.get("/summary")
 def get_summary(db: Session = Depends(get_db)):
@@ -86,7 +86,7 @@ def popular_services(db: Session = Depends(get_db)):
             func.count(Booking.id).label("total_bookings"),
             func.coalesce(func.sum(Booking.cost), 0).label("total_income")
         )
-        .outerjoin(Booking, Booking.service_id == Service.id)
+        .outerjoin(Booking, Booking.service_id == Service.id, Booking.payment_status == "done")
         .group_by(Service.id)
         .order_by(func.count(Booking.id).desc())
         .all()
@@ -112,9 +112,10 @@ def loyal_customers(db: Session = Depends(get_db)):
             func.count(Booking.id).label("total_bookings"),
             func.coalesce(func.sum(Booking.cost), 0).label("total_spent")
         )
-        .join(Booking, Booking.customer_id == User.id)
+        .join(Booking, Booking.customer_id == User.id, Booking.payment_status == "done")
         .group_by(User.id)
-        .order_by(func.count(Booking.id).desc())
+        .order_by(func.count(Booking.id).desc(), func.sum(Booking.cost).desc())
+        .limit(10)
         .all()
     )
 
@@ -136,13 +137,15 @@ def online_vs_offline_customers(db: Session = Depends(get_db)):
     manual = db.query(ManualBooking).distinct(ManualBooking.phone).count()
     return {"total_customers": online+manual, "online_customers": online, "manual_customers": manual}
 
-@router.get("/done-vs-cancel-bookings")
+@router.get("/done-vs-cancel-vs-pending-bookings")
 def done_vs_cancel_bookings(db: Session = Depends(get_db)):
     online = db.query(Booking).filter(Booking.payment_status == "done").count()
     offline = db.query(ManualBooking).count()
+    pending = db.query(Booking).filter(Booking.payment_status == "pending").count()
     done_count = online + offline
     cancel_count = db.query(Booking).filter(Booking.payment_status == "cancel").count()
     return {
         "done": done_count,
-        "cancel": cancel_count
+        "cancel": cancel_count,
+        "pending": pending
     }

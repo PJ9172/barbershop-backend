@@ -97,12 +97,16 @@ def confirm_booking(data: BookingsCreate, db: Session = Depends(get_db), current
         if slot and slot.start_time <= current_time:
             raise HTTPException(status_code=400, detail="Cannot book past time slot")
 
+    slotcapacity = db.query(SlotCapacity).first()
+    if slotcapacity is None:
+        raise HTTPException(status_code=500, detail="Slot capacity not set by Admin")
+
     count = db.query(Booking).with_for_update().filter(
         Booking.booking_date == data.booking_date,
         Booking.time_slot_id == data.time_slot_id
     ).count()
 
-    if count >= 2:
+    if count >= slotcapacity.capacity:
         raise HTTPException(status_code=400, detail="Slot already full!!!")
 
     new_booking = Booking(
